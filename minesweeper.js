@@ -18,7 +18,7 @@ let bombImage;
 // Game state
 // TODO: Allow diffrent amounts of mines in the future
 const amountMines = 8; 
-const tiles = new Set();
+const tiles = [];
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -34,10 +34,10 @@ window.onload = function() {
 
 function loadImages(){
     flagImage = new Image();
-    flagImage.src = "./flag.png"
+    flagImage.src = "./flag.png";
 
     bombImage = new Image();
-    bombImage.src = "./bomb.png"
+    bombImage.src = "./bomb.png";
 }
 
 class Tile {
@@ -45,7 +45,7 @@ class Tile {
         this.color = color;
         this.x = x;
         this.y = y;
-        this.size  = size;
+        this.size = size;
 
         this.isRevealed = false;
         this.isFlagged = false;
@@ -57,6 +57,7 @@ function initMap(){
     // Init tiles & assign colors
     // TODO: Mines logic
     for (let r = 0; r < rowCount; r++){
+        tiles.push([]);
         for (let c = 0; c < columnCount; c++){
             // Where exactly the tile is going to be printed
             const x = c * tileSize;
@@ -64,14 +65,17 @@ function initMap(){
             const color = (r+c) % 2 === 0 ? lightTileColor : darkTileColor
             
             const tile = new Tile(color, x, y, tileSize);
-            tiles.add(tile);
+            tiles[r].push(tile);
         }
     }
 }
 
 function draw(){
-    for (let tile of tiles){
-        context.fillStyle = tile.color;
-        context.fillRect(tile.x, tile.y, tile.size, tile.size);
+    for (let r = 0; r < rowCount; r++){
+        for (let c = 0; c < columnCount; c++){
+            const tile = tiles[r][c];
+            context.fillStyle = tile.color;
+            context.fillRect(tile.x, tile.y, tile.size, tile.size);
+        }
     }
 }
