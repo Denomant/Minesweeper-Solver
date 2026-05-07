@@ -11,6 +11,8 @@ let context;
 // Visuals
 const lightTileColor = "#6ad986";
 const darkTileColor = "#2c9145";
+const lightRevealedTileColor =  "#d99e6a";
+const darkRevealedTileColor =  "#915b2c";
 let flagImage;
 let bombImage;
 // TODO: Dynamic font-based number printing
@@ -19,6 +21,7 @@ let bombImage;
 // TODO: Allow diffrent amounts of mines in the future
 const amountMines = 8; 
 const tiles = [];
+let isMinesLoaded = false;
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -30,6 +33,8 @@ window.onload = function() {
     initMap();
 
     draw();
+    document.addEventListener("click", analyzeClick);
+    document.addEventListener("contextmenu", analyzeClick);
 }
 
 function loadImages(){
@@ -50,6 +55,13 @@ class Tile {
         this.isRevealed = false;
         this.isFlagged = false;
         this.isMine = false;
+
+        // deduced values
+        this.revealedColor = color === lightTileColor ? lightRevealedTileColor : darkRevealedTileColor
+    }
+
+    getColor() {
+        return this.isRevealed ? this.revealedColor : this.color;
     }
 }
 
@@ -70,12 +82,117 @@ function initMap(){
     }
 }
 
+/**
+ * Generates mines on the board, guaranteeing the first clicked tile
+ * and its immediate neighbors are mine-free.
+ * Should be called on the first tile click, not during initialization.
+ * 
+ * @param {number} safeRow - Row index of the first clicked tile
+ * @param {number} safeCol - Column index of the first clicked tile
+ */
+function generateMines(safeRow, safeCol){
+    isMinesLoaded = true;
+    let counter = 0;
+
+    while (couner < amountMines) {
+        let randRow = Math.floor(Math.random() * rowCount);
+        let randCol = Math.floor(Math.random() * columnCount);
+
+        // Always skip chosen tile
+        if (randRow === safeRow && randCol === safeCol){
+            continue;
+        }
+
+        if (!tiles[randRow][randCol].isMine) {
+            tiles[randRow][randCol].isMine = true;
+            counter++;
+        }
+
+        // When counter is full, check there are at least 4 safe tiles; Regenerate if not
+    }
+}
+
 function draw(){
     for (let r = 0; r < rowCount; r++){
         for (let c = 0; c < columnCount; c++){
             const tile = tiles[r][c];
-            context.fillStyle = tile.color;
+            context.fillStyle = tile.getColor();
             context.fillRect(tile.x, tile.y, tile.size, tile.size);
+
+            // Draw the flag if needed
+            if (tile.isFlagged){
+                context.drawImage(flagImage, tile.x, tile.y)
+            }
+
+            // If reveled, either print a number or the mine
+            if (tile.isRevealed && tile.isMine){
+                context.drawImage(bombImage, tile.x, tile.y);
+            } else if (tile.isRevealed && !tile.isMine){
+                // TODO: Print the number of adjacent mines
+            }
         }
     }
+}
+
+function analyzeClick(event){
+    event.preventDefault();
+
+    // if clicked outside the canvas
+    if (event.target !== board) {
+        return;
+    }
+
+    const col = Math.floor(event.offsetX / tileSize);
+    const row = Math.floor(event.offsetY / tileSize);
+
+    // On the first click, generate the mines
+    if(!isMinesLoaded){
+        generateMines(row, col);
+    }
+
+    // flag on right click, reveal on left click
+    // flag/unflag only if not revealed and reveal only if unflagged
+    if (event.type === "contextmenu" && !tiles[row][col].isRevealed){
+        tiles[row][col].isFlagged = !tiles[row][col].isFlagged;
+    } else if (event.type === "click" && !tiles[row][col].isFlagged){
+        tiles[row][col].isRevealed = true;
+    }
+
+    // Draw new map
+    draw();
+}
+
+// TODO: Meaningful JSDoc
+function countMines(row, col){
+    let total = 0;
+    for (let r = -1; r <= 1; r++){
+        for (let c = -1; c<= 1; c++){
+            const checkR = row + r;
+            const checkC = col + c;
+            try {
+                total += (tiles[checkR][checkC].isMine) ? 1 : 0;
+            } catch {
+                // Expected EAFP out of bounds 
+            }
+        }
+    }
+    return total;
+}
+
+function reveal(row, col){
+// TODO: Keep working
+}
+
+// TODO: JSDoc explaining that this function also returns the amount of revealed tiles
+function revealEmpty(row, col){
+    let total = 0;
+    // If the tile itself is not empty, no sense counting the rest
+    if (countMines(row, col) != 0){
+        return 0;
+    } else {
+
+    }
+    
+    for (let r = -1; r <= 1; r++)
+
 }
