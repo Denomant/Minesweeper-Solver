@@ -91,6 +91,7 @@ function initMap(){
  * @param {number} safeCol - Column index of the first clicked tile
  */
 function generateMines(safeRow, safeCol){
+    return;
     isMinesLoaded = true;
     let counter = 0;
 
@@ -155,7 +156,8 @@ function analyzeClick(event){
     if (event.type === "contextmenu" && !tiles[row][col].isRevealed){
         tiles[row][col].isFlagged = !tiles[row][col].isFlagged;
     } else if (event.type === "click" && !tiles[row][col].isFlagged){
-        tiles[row][col].isRevealed = true;
+        console.log("Trying to reveal: " + row + col)
+        reveal(row, col);
     }
 
     // Draw new map
@@ -176,23 +178,32 @@ function countMines(row, col){
             }
         }
     }
+    console.log("Mines: " + total);
     return total;
 }
 
-function reveal(row, col){
-// TODO: Keep working
-}
-
 // TODO: JSDoc explaining that this function also returns the amount of revealed tiles
-function revealEmpty(row, col){
-    let total = 0;
-    // If the tile itself is not empty, no sense counting the rest
-    if (countMines(row, col) != 0){
-        return 0;
-    } else {
-
+function reveal(row, col){
+    tiles[row][col].isRevealed = true;
+    let total = 1;
+    // On empty tile, reveal all tiles beside it
+    if (countMines(row, col) === 0){
+        for (let r = -1; r <= 1; r++){
+            for (let c = -1; c<= 1; c++){
+                const newR = row + r;
+                const newC = col + c;
+                try {
+                    console.log("Revealing: " + newR + " " + newC);
+                    // reveal only if not revealed before to avoid infinite loop
+                    if (!tiles[newR][newC].isRevealed){
+                        total += reveal(newR, newC);
+                    }
+                } catch {
+                    // Expected EAFP out of bounds 
+                }
+            }
+        }
     }
-    
-    for (let r = -1; r <= 1; r++)
-
+    console.log(total);
+    return total;
 }
