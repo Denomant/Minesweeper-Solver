@@ -13,7 +13,7 @@ const lightTileColor = "#6ad986";
 const darkTileColor = "#2c9145";
 const lightRevealedTileColor =  "#d99e6a";
 const darkRevealedTileColor =  "#915b2c";
-const amountMinesColors = ["#1e40af", "#047857", "#b91c1c", "#6d28d9", "#ec8600", "#0f766e", "#111827", "#881337", "#739cd4"];
+const amountMinesColors = ["#1e40af", "#047857", "#e05151", "#6d28d9", "#ec8600", "#0f766e", "#111827", "#881337", "#739cd4"];
 let flagImage;
 let bombImage;
 // TODO: Dynamic font-based number printing
@@ -23,6 +23,7 @@ let bombImage;
 const amountMines = 20; 
 const tiles = [];
 let isMinesLoaded = false;
+let isGameActive = true;
 
 window.onload = async function() {
     // Wait for the font to load
@@ -31,9 +32,7 @@ window.onload = async function() {
     board = document.getElementById("board");
     board.height = boardHeight;
     board.width = boardWidth;
-    context = board.getContext("2d"); // used for drawing on the board
-
-
+    context = board.getContext("2d"); // used for drawing on the boardWW
 
     loadImages();
     initMap();
@@ -162,6 +161,11 @@ function draw(){
 function analyzeClick(event){
     event.preventDefault();
 
+    // ignore clicks if game ended
+    if (!isGameActive){
+        return;
+    }
+
     // if clicked outside the canvas
     if (event.target !== board) {
         return;
@@ -185,6 +189,10 @@ function analyzeClick(event){
 
     // Draw new map
     draw();
+
+    // Check for loss or win
+    checkLose();
+    checkWin();
 }
 
 /**
@@ -238,4 +246,19 @@ function reveal(row, col){
         }
     }
     return total;
+}
+
+function checkWin(){
+
+}
+
+function checkLose(){
+    for (let r = 0; r < rowCount; r++){
+        for (let c = 0; c < columnCount; c++){
+            const tile = tiles[r][c];
+            if (tile.isMine && tile.isRevealed){
+                isGameActive = false;
+            }
+        }
+    }
 }
