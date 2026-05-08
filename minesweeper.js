@@ -19,7 +19,7 @@ let bombImage;
 
 // Game state
 // TODO: Allow diffrent amounts of mines in the future
-const amountMines = 8; 
+const amountMines = 20; 
 const tiles = [];
 let isMinesLoaded = false;
 
@@ -67,7 +67,6 @@ class Tile {
 
 function initMap(){
     // Init tiles & assign colors
-    // TODO: Mines logic
     for (let r = 0; r < rowCount; r++){
         tiles.push([]);
         for (let c = 0; c < columnCount; c++){
@@ -91,11 +90,9 @@ function initMap(){
  * @param {number} safeCol - Column index of the first clicked tile
  */
 function generateMines(safeRow, safeCol){
-    return;
-    isMinesLoaded = true;
     let counter = 0;
 
-    while (couner < amountMines) {
+    while (counter < amountMines) {
         let randRow = Math.floor(Math.random() * rowCount);
         let randCol = Math.floor(Math.random() * columnCount);
 
@@ -109,8 +106,20 @@ function generateMines(safeRow, safeCol){
             counter++;
         }
 
-        // When counter is full, check there are at least 4 safe tiles; Regenerate if not
     }
+    // Check if the first click is safe, if not reset and try again
+    if (reveal(safeRow, safeCol) < 2){
+        // Reset mines and try again
+        for (let r = 0; r < rowCount; r++){
+            for (let c = 0; c < columnCount; c++){
+                tiles[r][c].isMine = false;
+                tiles[r][c].isRevealed = false;
+            }
+        }
+        generateMines(safeRow, safeCol);
+    }
+
+    isMinesLoaded = true;
 }
 
 function draw(){
@@ -125,7 +134,7 @@ function draw(){
                 context.drawImage(flagImage, tile.x, tile.y)
             }
 
-            // If reveled, either print a number or the mine
+            // If revealed, either print a number or the mine
             if (tile.isRevealed && tile.isMine){
                 context.drawImage(bombImage, tile.x, tile.y);
             } else if (tile.isRevealed && !tile.isMine){
@@ -149,6 +158,7 @@ function analyzeClick(event){
     // On the first click, generate the mines
     if(!isMinesLoaded){
         generateMines(row, col);
+        return;
     }
 
     // flag on right click, reveal on left click
@@ -156,7 +166,6 @@ function analyzeClick(event){
     if (event.type === "contextmenu" && !tiles[row][col].isRevealed){
         tiles[row][col].isFlagged = !tiles[row][col].isFlagged;
     } else if (event.type === "click" && !tiles[row][col].isFlagged){
-        console.log("Trying to reveal: " + row + col)
         reveal(row, col);
     }
 
@@ -164,7 +173,12 @@ function analyzeClick(event){
     draw();
 }
 
-// TODO: Meaningful JSDoc
+/**
+ * Counts the number of mines in the 3x3 grid surrounding the specified tile.
+ * @param {number} row 
+ * @param {number} col 
+ * @returns {number} The total number of mines in the surrounding tiles.
+ */
 function countMines(row, col){
     let total = 0;
     for (let r = -1; r <= 1; r++){
@@ -178,11 +192,17 @@ function countMines(row, col){
             }
         }
     }
-    console.log("Mines: " + total);
     return total;
 }
 
-// TODO: JSDoc explaining that this function also returns the amount of revealed tiles
+/**
+ * Reveals the tile at the specified position and returns the number of revealed tiles.
+ * @param {number} row 
+ * @param {number} col 
+ * @returns {number} The total number of tiles revealed by this action, including the initial tile.
+ * If the revealed tile has no adjacent mines, it will recursively reveal all adjacent tiles until it reaches tiles that are adjacent to mines.
+ * This function also marks the revealed tiles as revealed in the game state.
+ */
 function reveal(row, col){
     tiles[row][col].isRevealed = true;
     let total = 1;
@@ -193,9 +213,8 @@ function reveal(row, col){
                 const newR = row + r;
                 const newC = col + c;
                 try {
-                    console.log("Revealing: " + newR + " " + newC);
                     // reveal only if not revealed before to avoid infinite loop
-                    if (!tiles[newR][newC].isRevealed){
+                    if (!tiles[newR][newC].isRevealed && !tiles[newR][newC].isFlagged){
                         total += reveal(newR, newC);
                     }
                 } catch {
@@ -204,6 +223,5 @@ function reveal(row, col){
             }
         }
     }
-    console.log(total);
     return total;
 }
