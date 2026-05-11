@@ -44,10 +44,10 @@ window.onload = async function() {
 
 function loadImages(){
     flagImage = new Image();
-    flagImage.src = "./flag.png";
+    flagImage.src = "./res/images/flag.png";
 
     bombImage = new Image();
-    bombImage.src = "./bomb.png";
+    bombImage.src = "./res/images/bomb.png";
 }
 
 class Tile {
