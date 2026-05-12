@@ -16,7 +16,9 @@ const darkRevealedTileColor =  "#915b2c";
 const amountMinesColors = ["#1e40af", "#047857", "#e05151", "#6d28d9", "#ec8600", "#0f766e", "#111827", "#881337", "#739cd4"];
 let flagImage;
 let bombImage;
-// TODO: Dynamic font-based number printing
+let falseFlagImage;
+const amountExplosionFrames = 4;
+let explosionFrames = [];
 
 // Game state
 // TODO: Allow diffrent amounts of mines in the future
@@ -48,6 +50,16 @@ function loadImages(){
 
     bombImage = new Image();
     bombImage.src = "./res/images/bomb.png";
+
+    falseFlagImage = new Image();
+    falseFlagImage.src = "./res/images/false_flag.png";
+
+    // load explosion frames
+    for (let i = 1; i <= amountExplosionFrames; i++){
+        const frame = new Image();
+        frame.src = `./res/images/explosion/frame${i}.png`;
+        explosionFrames.push(frame);
+    }
 }
 
 class Tile {
@@ -62,7 +74,10 @@ class Tile {
         this.isMine = false;
 
         // deduced values
-        this.revealedColor = color === lightTileColor ? lightRevealedTileColor : darkRevealedTileColor
+        this.revealedColor = color === lightTileColor ? lightRevealedTileColor : darkRevealedTileColor;
+        // For animation
+        this.explosionFrame = null;
+        this.isFalseFlag = false;
     }
 
     getColor() {
@@ -141,16 +156,20 @@ function draw(){
 
             // Draw the flag if needed
             if (tile.isFlagged){
-                context.drawImage(flagImage, tile.x, tile.y)
+                const flagType = tile.isFalseFlag ? falseFlagImage : flagImage;
+                context.drawImage(flagType, tile.x, tile.y)
             }
 
-            // If revealed, either print a number or the mine
+            // If revealed, either the mine or print the number
             if (tile.isRevealed && tile.isMine){
                 context.drawImage(bombImage, tile.x, tile.y);
-            } else if (tile.isRevealed && !tile.isMine){
+                if (tile.explosionFrame != null){
+                    context.drawImage(explosionFrames[tile.explosionFrame], tile.x, tile.y);
+                }
+            } else if (tile.isRevealed && !tile.isMine && !tile.isFlagged){
                 const countedMines = countMines(r, c);
                 if (countedMines != 0){
-                    context.fillStyle = amountMinesColors[countMines(r, c) - 1];
+                    context.fillStyle = amountMinesColors[countedMines - 1];
                     context.fillText(countedMines, tile.x + tileSize/2, tile.y + tileSize/2);
                 }
             }
@@ -185,13 +204,13 @@ function analyzeClick(event){
         tiles[row][col].isFlagged = !tiles[row][col].isFlagged;
     } else if (event.type === "click" && !tiles[row][col].isFlagged){
         reveal(row, col);
+        checkLose(row, col);
     }
 
     // Draw new map
     draw();
 
-    // Check for loss or win
-    checkLose();
+    // Check for win
     checkWin();
 }
 
@@ -252,13 +271,58 @@ function checkWin(){
 
 }
 
-function checkLose(){
+function checkLose(row, col){
+    if (tiles[row][col].isMine){
+        isGameActive = false;
+        // Explode triggering tile immediately
+        explode(row, col);
+    } else {
+        return; // Not a mine
+    }
+
+    // Explode the rest of the mines in random order
     for (let r = 0; r < rowCount; r++){
         for (let c = 0; c < columnCount; c++){
             const tile = tiles[r][c];
-            if (tile.isMine && tile.isRevealed){
-                isGameActive = false;
+            // if mine and not revealed and not flagged and not the one that was just clicked
+            if (tile.isMine && !tile.isRevealed && !tile.isFlagged && tile !== tiles[row][col]){
+                explode(r, c, Math.random() * 1000); // Random delay up to 1 second
             }
         }
     }
+
+    // When all explosions are done, mark false flags
+    setTimeout(() => {
+        for (let r = 0; r < rowCount; r++){
+            for (let c = 0; c < columnCount; c++){
+                const tile = tiles[r][c];
+                if (!tile.isMine && tile.isFlagged){
+                    tile.isRevealed = true;
+                    tile.isFalseFlag = true; // No explosion, but we can reuse the property to trigger the false flag image
+                }
+            }
+        }
+        draw();
+    }, 1500); // Wait a bit longer than the longest explosion animation
+}
+
+function explode(row, col, delay = 0){
+    // One frame is ~100ms
+    setTimeout(() => {
+        let tile = tiles[row][col];
+        tile.isRevealed = true;
+        tile.explosionFrame = 0;
+
+        // Animate explosion
+        const explosionInterval = setInterval(() => {
+            if (tile.explosionFrame < amountExplosionFrames - 1){
+                tile.explosionFrame++;
+                draw();
+            } else { 
+                tile.explosionFrame = null;
+                clearInterval(explosionInterval);
+                draw();
+            }
+        }, 100);
+    }, delay);
 }
