@@ -9,6 +9,7 @@ const boardHeight = rowCount * tileSize;
 let context;
 let popUp;
 let popUpBtn;
+let popUpTitle;
 
 // Visuals
 const lightTileColor = "#6ad986";
@@ -38,9 +39,9 @@ window.onload = async function() {
     board.width = boardWidth;
     context = board.getContext("2d"); // used for drawing on the boardWW
 
+    // Set up pop-up elements
     popUp = document.getElementById("pop-up");
-
-    // Set up pop-up button
+    popUpTitle = document.getElementById("pop-up-title");
     popUpBtn = document.getElementById("pop-up-btn");
     popUpBtn.addEventListener("click", resetGame);
 
@@ -158,8 +159,7 @@ function resetGame() {
     
     draw();
 
-    // Remove pop-up if visible
-    popUp.classList.add("hidden");
+    hidePopUp();
 }
 
 function draw(){
@@ -287,8 +287,32 @@ function reveal(row, col){
     return total;
 }
 
+/**
+ * A game can be won if:
+ * 1) All the mines, and only the mines, are flagged.
+ * 2) All the non-mine tiles are revealed.
+ */
 function checkWin(){
+    let minesFlagged = 0;
+    let isNonMineFlagged = false;
+    let isAllNonMinesRevealed = true;
 
+    for (let r = 0; r < rowCount; r++){
+        for (let c = 0; c < columnCount; c++){
+            const tile = tiles[r][c];
+            if (tile.isMine && tile.isFlagged){
+                minesFlagged++;
+            } else if (!tile.isMine && tile.isFlagged){
+                isNonMineFlagged = true;
+            }
+            if (!tile.isMine && !tile.isRevealed){
+                isAllNonMinesRevealed = false;
+            }
+        }
+    }
+    if ((minesFlagged === amountMines && !isNonMineFlagged) || isAllNonMinesRevealed){
+        showPopUp("You Won!");
+    }
 }
 
 function checkLose(row, col){
@@ -327,8 +351,8 @@ function checkLose(row, col){
 
     // Reveal pop-up after all explosions are done
     setTimeout(() => {
-        popUp.classList.remove("hidden");
-    }, 2000);
+        showPopUp("You Lost!");
+    }, 1600);
 }
 
 function explode(row, col, delay = 0){
@@ -350,4 +374,13 @@ function explode(row, col, delay = 0){
             }
         }, 100);
     }, delay);
+}
+
+function showPopUp(title){
+    popUpTitle.textContent = title;
+    popUp.classList.remove("hidden");
+}
+
+function hidePopUp(){
+    popUp.classList.add("hidden");
 }
