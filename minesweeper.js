@@ -7,6 +7,8 @@ const tileSize = 64; // in px
 const boardWidth  = columnCount * tileSize;
 const boardHeight = rowCount * tileSize;
 let context;
+let popUp;
+let popUpBtn;
 
 // Visuals
 const lightTileColor = "#6ad986";
@@ -23,7 +25,7 @@ let explosionFrames = [];
 // Game state
 // TODO: Allow diffrent amounts of mines in the future
 const amountMines = 20; 
-const tiles = [];
+let tiles = [];
 let isMinesLoaded = false;
 let isGameActive = true;
 
@@ -35,6 +37,12 @@ window.onload = async function() {
     board.height = boardHeight;
     board.width = boardWidth;
     context = board.getContext("2d"); // used for drawing on the boardWW
+
+    popUp = document.getElementById("pop-up");
+
+    // Set up pop-up button
+    popUpBtn = document.getElementById("pop-up-btn");
+    popUpBtn.addEventListener("click", resetGame);
 
     loadImages();
     initMap();
@@ -140,6 +148,18 @@ function generateMines(safeRow, safeCol){
     }
 
     isMinesLoaded = true;
+}
+
+function resetGame() {
+    tiles = [];
+    isMinesLoaded = false;
+    isGameActive = true;
+    initMap();
+    
+    draw();
+
+    // Remove pop-up if visible
+    popUp.classList.add("hidden");
 }
 
 function draw(){
@@ -304,6 +324,11 @@ function checkLose(row, col){
         }
         draw();
     }, 1500); // Wait a bit longer than the longest explosion animation
+
+    // Reveal pop-up after all explosions are done
+    setTimeout(() => {
+        popUp.classList.remove("hidden");
+    }, 2000);
 }
 
 function explode(row, col, delay = 0){

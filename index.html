@@ -13,6 +13,12 @@
         <script src="minesweeper.js"></script>
     </head>
     <body>
-        <canvas id="board"></canvas>
+        <div id="game-wrapper">
+            <canvas id="board"></canvas>
+            <div id="pop-up" class="hidden">
+                <h1 id="pop-up-title">You Lost!</h1>
+                <button id="pop-up-btn">Play Again</button>
+            </div>
+        </div>
     </body>
 </html>

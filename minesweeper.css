@@ -5,3 +5,36 @@ body{
 #board {
     background-color: black;
 }
+
+#game-container {
+    /*position: relative;*/
+    width: fit-content; /* shrinks to canvas size */
+}
+
+.hidden {
+    display: none;
+}
+
+#pop-up {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* make the whole background black */
+    width: 100%;
+    height: 100%;
+    
+    /* semi-transparent dark background */
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+}
+
+#pop-up-title {
+    font-family: "Micro 5";
+    font-size: 128px;
+}
+
+#pop-up-btn {
+    font-family: "Micro 5";
+    font-size: 48px;
+    padding: 10px 20px;
+}
