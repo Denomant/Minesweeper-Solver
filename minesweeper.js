@@ -313,11 +313,32 @@ function checkWin(){
         }
     }
     if ((minesFlagged === amountMines && !isNonMineFlagged) || isAllNonMinesRevealed){
+        // One big confetti explosion
         confetti({
             particleCount: 300,
-            spread: 300,
-            ticks: 1000
+            spread: 90,
+            startVelocity: 15,
+            gravity: 0.7,
+            ticks: 300
         })
+        
+        // A bunch of smaller explosions in random order and random places
+        for (let i = 0; i < 10; i++){
+            setTimeout(() => {
+                confetti({
+                        particleCount: 150,
+                        spread: 360,
+                        startVelocity: 20,
+                        gravity: 0.7,
+                        origin: {
+                            x: Math.random() + 0.1,
+                            y: Math.random()
+                        },
+                        ticks: 300
+                        });
+            }, i * 250);
+        }
+        isGameActive = false;
         showPopUp("You Won!");
     }
 }
