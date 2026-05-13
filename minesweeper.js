@@ -119,6 +119,7 @@ function initMap(){
  * @param {number} safeCol - Column index of the first clicked tile
  */
 function generateMines(safeRow, safeCol){
+    console.log("new game, generating mines..."); // TODO: remove debug log
     let counter = 0;
 
     while (counter < amountMines) {
@@ -133,6 +134,7 @@ function generateMines(safeRow, safeCol){
         if (!tiles[randRow][randCol].isMine) {
             tiles[randRow][randCol].isMine = true;
             counter++;
+            console.log(`Mine generated at (${randRow}, ${randCol})`); // TODO: remove debug log
         }
 
     }
@@ -311,6 +313,11 @@ function checkWin(){
         }
     }
     if ((minesFlagged === amountMines && !isNonMineFlagged) || isAllNonMinesRevealed){
+        confetti({
+            particleCount: 300,
+            spread: 300,
+            ticks: 1000
+        })
         showPopUp("You Won!");
     }
 }
