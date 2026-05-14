@@ -126,8 +126,19 @@ function generateMines(safeRow, safeCol){
         let randRow = Math.floor(Math.random() * rowCount);
         let randCol = Math.floor(Math.random() * columnCount);
 
-        // Always skip chosen tile
-        if (randRow === safeRow && randCol === safeCol){
+        // Check if the tile is one of the 8 neighbors of the safe tile
+        let isNeighbor = false;
+        for (let dr = -1; dr <= 1; dr++){
+            for (let dc = -1; dc <= 1; dc++){
+                if (randRow === safeRow + dr && randCol === safeCol + dc){
+                    isNeighbor = true;
+                    break;
+                }
+            }
+            if (isNeighbor) break;
+        }
+
+        if (isNeighbor){
             continue;
         }
 
@@ -137,17 +148,6 @@ function generateMines(safeRow, safeCol){
             console.log(`Mine generated at (${randRow}, ${randCol})`); // TODO: remove debug log
         }
 
-    }
-    // Check if the first click is safe, if not reset and try again
-    if (reveal(safeRow, safeCol) < 2){
-        // Reset mines and try again
-        for (let r = 0; r < rowCount; r++){
-            for (let c = 0; c < columnCount; c++){
-                tiles[r][c].isMine = false;
-                tiles[r][c].isRevealed = false;
-            }
-        }
-        generateMines(safeRow, safeCol);
     }
 
     isMinesLoaded = true;
