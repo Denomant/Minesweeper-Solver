@@ -1,17 +1,29 @@
-body{
-    text-align: center;
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* keeps it at the top, not vertically centered in viewport */
+    min-height: 100vh;
 }
 
 #board {
     background-color: black;
 }
 
-#game-container {
-    /*position: relative;*/
+#game-wrapper {
+    position: relative;
     width: fit-content; /* shrinks to canvas size */
 }
 
-.hidden {
+#confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* allows clicks to pass through to the board */
+}
+
+#pop-up.hidden {
     display: none;
 }
 
@@ -26,6 +38,12 @@ body{
     /* semi-transparent dark background */
     background-color: rgba(0, 0, 0, 0.75);
     color: white;
+
+    /* center the content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 #pop-up-title {

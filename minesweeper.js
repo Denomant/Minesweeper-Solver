@@ -7,6 +7,8 @@ const tileSize = 64; // in px
 const boardWidth  = columnCount * tileSize;
 const boardHeight = rowCount * tileSize;
 let context;
+let confettiCanvas;
+let myConfetti;
 let popUp;
 let popUpBtn;
 let popUpTitle;
@@ -37,7 +39,12 @@ window.onload = async function() {
     board = document.getElementById("board");
     board.height = boardHeight;
     board.width = boardWidth;
-    context = board.getContext("2d"); // used for drawing on the boardWW
+    context = board.getContext("2d"); // used for drawing on the board
+
+    confettiCanvas = document.getElementById("confetti-canvas");
+    confettiCanvas.height = boardHeight;
+    confettiCanvas.width = boardWidth;
+    myConfetti = confetti.create(confettiCanvas, { resize: true });
 
     // Set up pop-up elements
     popUp = document.getElementById("pop-up");
@@ -157,7 +164,7 @@ function resetGame() {
     tiles = [];
     isMinesLoaded = false;
     isGameActive = true;
-    initMap();
+    initMap();  
     
     draw();
 
@@ -314,7 +321,7 @@ function checkWin(){
     }
     if ((minesFlagged === amountMines && !isNonMineFlagged) || isAllNonMinesRevealed){
         // One big confetti explosion
-        confetti({
+        myConfetti({
             particleCount: 300,
             spread: 90,
             startVelocity: 15,
@@ -325,7 +332,7 @@ function checkWin(){
         // A bunch of smaller explosions in random order and random places
         for (let i = 0; i < 10; i++){
             setTimeout(() => {
-                confetti({
+                myConfetti({
                         particleCount: 150,
                         spread: 360,
                         startVelocity: 20,
